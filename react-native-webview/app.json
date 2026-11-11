@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "ClickFix example",
+    "slug": "clickfix-example",
+    "version": "0.1.0",
+    "scheme": "clickfix-example",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": { "bundleIdentifier": "com.example.clickfix", "supportsTablet": true },
+    "android": { "package": "com.example.clickfix" },
+    "plugins": ["expo-secure-store"]
+  }
+}
