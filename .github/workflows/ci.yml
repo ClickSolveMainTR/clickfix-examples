@@ -30,8 +30,9 @@ jobs:
       - name: Smoke test against the stub API
         run: |
           PORT=8787 node ../tools/stub-api.mjs &
+          until curl -s http://127.0.0.1:8787/ >/dev/null; do sleep 1; done
           PORT=3000 node dist/server.js &
-          sleep 2
+          until curl -s http://127.0.0.1:3000/api/support-session >/dev/null; do sleep 1; done
           npm run smoke
           npm run webhook:test | tee out.txt
           grep -q 'valid: HTTP 200' out.txt && grep -q 'tampered: HTTP 401' out.txt
@@ -93,7 +94,7 @@ jobs:
       - name: Demo and webhook receiver against the stub API
         run: |
           PORT=8787 node ../tools/stub-api.mjs &
-          sleep 1
+          until curl -s http://127.0.0.1:8787/ >/dev/null; do sleep 1; done
           go run . demo
           PORT=3000 go run . serve &
           sleep 3
@@ -113,7 +114,7 @@ jobs:
       - name: Demo and webhook receiver against the stub API
         run: |
           PORT=8787 node ../tools/stub-api.mjs &
-          sleep 1
+          until curl -s http://127.0.0.1:8787/ >/dev/null; do sleep 1; done
           php demo.php
           php -S 127.0.0.1:3000 -t public &
           sleep 1
@@ -144,7 +145,7 @@ jobs:
       - name: Webhook route and widget page against the stub API
         run: |
           PORT=8787 node ../tools/stub-api.mjs &
-          sleep 1
+          until curl -s http://127.0.0.1:8787/ >/dev/null; do sleep 1; done
           php artisan clickfix:check
           php artisan serve --host=127.0.0.1 --port=3000 &
           sleep 3
@@ -163,5 +164,5 @@ jobs:
       - name: Run every script against the stub API
         run: |
           PORT=8787 node ../tools/stub-api.mjs &
-          sleep 1
+          until curl -s http://127.0.0.1:8787/ >/dev/null; do sleep 1; done
           INBOX_UUID=00000000-0000-4000-8000-00000000c0de WEBHOOK_URL=https://example.com/clickfix/webhook ./run-all.sh
