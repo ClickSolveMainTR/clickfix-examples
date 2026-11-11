@@ -1,0 +1,23 @@
+name: clickfix_flutter_example
+description: ClickFix example app for Flutter with clickfix_webview (identify, track, deep link to a conversation).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  clickfix_webview: ^0.1.1
+  http: ^1.5.0
+  url_launcher: ^6.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
