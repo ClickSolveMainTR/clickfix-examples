@@ -1,0 +1,29 @@
+{
+  "name": "clickfix-example-nextjs-widget",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ClickFix example: Next.js App Router with @getclickfix/react-widget and a server-side user_hash route handler.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@getclickfix/node": "^0.2.1",
+    "@getclickfix/react-widget": "^0.1.2",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "^15.5.0",
+    "typescript": "^5.9.0"
+  }
+}
