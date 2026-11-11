@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Fixed credentials of tools/stub-api.mjs; nothing here is a real key.
+  CLICKFIX_BASE_URL: http://127.0.0.1:8787
+  CLICKFIX_API_KEY: cf_sk_example_key
+  CLICKFIX_IDENTITY_SECRET: example-identity-secret
+  CLICKFIX_WEBHOOK_SECRET: whsec_ci_example_0123456789abcdef0123456789abcdef
+
+jobs:
+  node-express:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: node-express } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: node-express/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Smoke test against the stub API
+        run: |
+          PORT=8787 node ../tools/stub-api.mjs &
+          PORT=3000 node dist/server.js &
+          sleep 2
+          npm run smoke
+          npm run webhook:test | tee out.txt
+          grep -q 'valid: HTTP 200' out.txt && grep -q 'tampered: HTTP 401' out.txt
+
+  nextjs-widget:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: nextjs-widget } }
+    env:
+      NEXT_PUBLIC_CLICKFIX_WIDGET_ID: ci-widget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: nextjs-widget/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Route handler smoke test
+        run: |
+          npx next start -p 3000 &
+          sleep 4
+          curl -sf localhost:3000/api/support-session | grep -q '"user_hash":"[0-9a-f]\{64\}"'
+
+  react-native-webview:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: react-native-webview } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: react-native-webview/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Metro bundle (Android)
+        run: npx expo export --platform android --output-dir /tmp/export
+        env: { EXPO_PUBLIC_CLICKFIX_WIDGET_ID: ci-widget, CI: 1 }
+
+  flutter-webview:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: flutter-webview } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test
+
+  go-server:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: go-server } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go-server/go.mod, cache-dependency-path: go-server/go.sum }
+      - run: test -z "$(gofmt -l .)"
+      - run: go build ./...
+      - run: go vet ./...
+      - name: Demo and webhook receiver against the stub API
+        run: |
+          PORT=8787 node ../tools/stub-api.mjs &
+          sleep 1
+          go run . demo
+          PORT=3000 go run . serve &
+          sleep 3
+          WEBHOOK_URL=http://127.0.0.1:3000/webhooks/clickfix node ../node-express/scripts/send-test-webhook.mjs | tee out.txt
+          grep -q 'valid: HTTP 200' out.txt && grep -q 'tampered: HTTP 401' out.txt
+
+  php-plain:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: php-plain } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', tools: composer:v2 }
+      - run: composer validate --strict
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: for f in demo.php src/*.php public/*.php; do php -l "$f"; done
+      - name: Demo and webhook receiver against the stub API
+        run: |
+          PORT=8787 node ../tools/stub-api.mjs &
+          sleep 1
+          php demo.php
+          php -S 127.0.0.1:3000 -t public &
+          sleep 1
+          WEBHOOK_URL=http://127.0.0.1:3000/webhooks/clickfix node ../node-express/scripts/send-test-webhook.mjs | tee out.txt
+          grep -q 'valid: HTTP 200' out.txt && grep -q 'tampered: HTTP 401' out.txt
+
+  laravel-app:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: laravel-app } }
+    env:
+      CLICKFIX_WIDGET_ID: ci-widget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', tools: composer:v2 }
+      - run: composer validate --strict
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Artisan smoke test
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan clickfix:install --no-env
+          php artisan clickfix:user-hash 1001 --raw --json
+          php artisan clickfix:webhook:secret
+          php artisan route:list --path=clickfix
+      - run: vendor/bin/pint --test
+      - run: php artisan test
+      - name: Webhook route and widget page against the stub API
+        run: |
+          PORT=8787 node ../tools/stub-api.mjs &
+          sleep 1
+          php artisan clickfix:check
+          php artisan serve --host=127.0.0.1 --port=3000 &
+          sleep 3
+          curl -sf localhost:3000/ | grep -q 'ClickFix("boot"'
+          curl -sf localhost:3000/support-session | grep -q '"user_hash":"[0-9a-f]\{64\}"'
+          WEBHOOK_URL=http://127.0.0.1:3000/clickfix/webhook node ../node-express/scripts/send-test-webhook.mjs | tee out.txt
+          grep -q 'valid: HTTP 200' out.txt && grep -q 'tampered: HTTP 401' out.txt
+
+  curl:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: curl } }
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y shellcheck jq
+      - run: shellcheck -x ./*.sh
+      - name: Run every script against the stub API
+        run: |
+          PORT=8787 node ../tools/stub-api.mjs &
+          sleep 1
+          INBOX_UUID=00000000-0000-4000-8000-00000000c0de WEBHOOK_URL=https://example.com/clickfix/webhook ./run-all.sh
