@@ -81,6 +81,12 @@ export function startStub(port = 0) {
       if (typeof input.external_id !== 'string' || !input.external_id) return fail(res, 400, 'VALIDATION_ERROR', 'external_id required');
       const existing = contacts.get(input.external_id);
       const { external_id, ...rest } = input;
+      // `company` is sent as a uuid and returned as a {uuid, name} reference, like the real API.
+      if (typeof rest.company === 'string') {
+        const ref = [...companies.values()].find((c) => c.uuid === rest.company);
+        if (!ref) return fail(res, 404, 'NOT_FOUND', 'company not found');
+        rest.company = { uuid: ref.uuid, name: ref.name };
+      }
       const contact = existing ? { ...existing, ...rest, updated_at: now() } : contactOf(external_id, rest);
       contacts.set(external_id, contact);
       return reply(existing ? 200 : 201, contact);
