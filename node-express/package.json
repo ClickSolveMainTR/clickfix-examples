@@ -1,0 +1,27 @@
+{
+  "name": "clickfix-example-node-express",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ClickFix example: Express server with @getclickfix/node (identity hash, contacts, custom fields, events, webhooks).",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "dev": "node --env-file-if-exists=.env --experimental-strip-types src/server.ts",
+    "webhook:test": "node --env-file-if-exists=.env scripts/send-test-webhook.mjs",
+    "smoke": "node --env-file-if-exists=.env scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@getclickfix/node": "^0.2.1",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.0"
+  }
+}
