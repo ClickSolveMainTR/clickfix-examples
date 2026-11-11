@@ -10,6 +10,16 @@ use Tests\TestCase;
 
 class ClickFixTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Fixed values so the assertions do not depend on the machine's .env.
+        config()->set('clickfix.api_key', 'cf_sk_test');
+        config()->set('clickfix.widget.id', 'test-widget');
+        config()->set('clickfix.widget.identity_secret', 'test-identity-secret');
+        config()->set('clickfix.webhook.secret', 'test-webhook-secret');
+    }
+
     public function test_page_boots_the_widget_with_the_signed_in_user(): void
     {
         $this->get('/')

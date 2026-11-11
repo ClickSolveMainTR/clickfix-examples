@@ -31,4 +31,5 @@ npm run typecheck && npm run lint && npm run build
 ## Notes on the SDK (react-widget 0.1.2)
 
 - The example uses the script hooks (`useClickFix`, `useClickFixEvent`), which drive the hosted messenger UI. The package's UI-free `createWidgetClient` works in *browser mode* only through a same-origin BFF at `/api/v1/widget/...`, which a site on its own domain does not have, so it is not used here; a custom UI from another origin would need a proxy to the widget API.
+- `useClickFix` reads `window` while rendering (`stub()` in its return value), so a component using it crashes during server rendering and static prerendering (`ReferenceError: window is not defined`). `components/support-widget.tsx` mounts the hook-bearing component only after the first client render; a guard inside the hook would make this unnecessary.
 - The `ClickFixCommand` overload for `sdk('reset')` is typed as `void` while `sdk.reset()` returns a promise; the example uses the command form and updates its state synchronously.

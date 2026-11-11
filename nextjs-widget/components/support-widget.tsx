@@ -11,7 +11,15 @@ interface Props {
   signedIn: boolean;
 }
 
-export function SupportWidget({ widgetId, appOrigin, signedIn }: Props) {
+// useClickFix reads `window` while rendering, so the hook must not run during
+// server rendering or static prerendering: mount the widget on the client only.
+export function SupportWidget(props: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted ? <SupportWidgetClient {...props} /> : <p>Widget: loading</p>;
+}
+
+function SupportWidgetClient({ widgetId, appOrigin, signedIn }: Props) {
   // A stable options object: useClickFix boots once per appOrigin|widgetId.
   const options = useMemo(() => ({ appOrigin, widgetId, hideLauncher: true }), [appOrigin, widgetId]);
   const { ready, open, unread, sdk } = useClickFix(options);

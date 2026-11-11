@@ -23,10 +23,6 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="CLICKFIX_API_KEY" value="cf_sk_test"/>
-        <env name="CLICKFIX_WIDGET_ID" value="test-widget"/>
-        <env name="CLICKFIX_IDENTITY_SECRET" value="test-identity-secret"/>
-        <env name="CLICKFIX_WEBHOOK_SECRET" value="test-webhook-secret"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
