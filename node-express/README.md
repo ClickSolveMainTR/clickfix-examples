@@ -55,6 +55,6 @@ This is what CI runs. The stub ships one company with external id `F-77`, so the
 
 ## Notes on the SDK (0.2.1)
 
-- The TypeScript body type of `PUT /contacts/by-external-id` is `ContactInput & Record<string, never>`, which no object satisfies, so `src/server.ts` casts the typed body (`contactBody`). The request on the wire is the one the guide shows.
-- `CompanyEventInput.source` is required in the published types although the API defaults it to `api`; the example sends `source: 'api'`.
+- The TypeScript body type of `PUT /contacts/by-external-id` is `ContactInput & Record<string, never>`, which no object satisfies, so `src/server.ts` casts the typed body (`contactBody`). The request on the wire is the one the guide shows. Fixed in 0.2.2 (`ContactInput & { external_id: string }`).
+- `CompanyEventInput.source` is required in the published types although the API defaults it to `api`; the example sends `source: 'api'`. Optional from 0.2.2.
 - There is no helper for the company lookup; the example calls `GET /v1/public-api/companies?external_id=` through `client.request`, as the guide does.

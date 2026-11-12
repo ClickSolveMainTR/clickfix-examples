@@ -1,4 +1,6 @@
-# react-native-webview
+# expo-webview
+
+The hosted widget in a webview. For native screens instead, see [`../expo`](../expo) (Expo) and [`../react-native`](../react-native) (bare React Native).
 
 An Expo (SDK 54) app that talks to ClickFix twice, as the guide's mobile section describes:
 
@@ -40,6 +42,6 @@ npx expo export --platform android --output-dir /tmp/export   # Metro bundle, wh
 
 ## Notes on the SDK (visitor-core 0.1.1)
 
-- App mode needs the ClickFix *app* origin plus `/api` as `baseURL` (`https://getclickfix.com/api`), the same origin that serves `widget-embed.html`; the public API host `api.getclickfix.com` is for server keys only.
-- `parseMessage` is a shape check: payloads of `clickfix:event` are typed `unknown`, so the example narrows `unread` and `identify` payloads itself.
-- There is no React Native wrapper component in the package; the webview wiring in `src/SupportWebView.tsx` is about 60 lines and can be copied as is.
+- App mode needs the ClickFix *app* origin plus `/api` as `baseURL` (`https://getclickfix.com/api`), the same origin that serves `widget-embed.html`; the public API host `api.getclickfix.com` is for server keys only. The visitor-core README and the guide say so from 0.2.0 on.
+- In 0.1.1 the payloads of `clickfix:event` are typed `unknown`, so this example narrows `unread` and `identify` itself. visitor-core 0.2.0 types them per event (`m.event === 'unread'` gives `m.payload.count`); the casts go away when the example moves to that release.
+- There is no webview component in the packages; the wiring in `src/SupportWebView.tsx` is about 60 lines and can be copied as is. From 0.2.0, `@getclickfix/react-native` and `@getclickfix/expo` re-export the same bridge helpers.

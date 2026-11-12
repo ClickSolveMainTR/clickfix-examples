@@ -39,5 +39,5 @@ CLICKFIX_BASE_URL=http://127.0.0.1:8787 CLICKFIX_API_KEY=cf_sk_example_key CLICK
 
 ## Notes on the SDK (0.1.0)
 
-- `UserHash::make($secret, $userId)` covers the user id only. The company-bound hash the guide describes (`hex(HMAC-SHA256(secret, user_id . "\n" . company_id))`) has no helper yet, so `src/Identity.php` computes it with `hash_hmac`, matching `identityHash(secret, userId, companyId)` in Node and `IdentityCompanyHash` in Go.
+- `UserHash::make($secret, $userId)` covers the user id only. The company-bound hash the guide describes (`hex(HMAC-SHA256(secret, user_id . "\n" . company_id))`) has no helper in 0.1.0, so `src/Identity.php` computes it with `hash_hmac`, matching `identityHash(secret, userId, companyId)` in Node and `IdentityCompanyHash` in Go. 0.2.0 adds `UserHash::make($secret, $userId, $companyId)` and `UserHash::forCompany(...)`.
 - The resource classes cover every call used here; nothing needed a raw `request()`.

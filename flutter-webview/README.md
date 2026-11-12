@@ -33,5 +33,5 @@ flutter test      # identity mapping and the deep-link embed URL
 
 ## Notes on the SDK (clickfix_webview 0.1.1)
 
-- The package requires `sdk: ^3.10.0` and `flutter: >=3.38.0`, but Flutter 3.38.0 ships Dart `3.10.0-290.4.beta`, which does not satisfy `^3.10.0`; `pub get` fails on that exact version and works on later stable releases (3.47.9 here). A constraint of `>=3.10.0-0` or a higher Flutter minimum would avoid the confusion.
+- The package requires `sdk: ^3.10.0` and `flutter: >=3.38.0`, but Flutter 3.38.0 ships Dart `3.10.0-290.4.beta`, which does not satisfy `^3.10.0`; `pub get` fails on that exact version and works on later stable releases (3.47.9 here). 0.1.2 drops the `flutter:` bound and keeps only `sdk: ^3.10.0`, so any Flutter release with a stable Dart 3.10+ resolves.
 - Identify and track complete with the widget's result, so no polling is needed; the screen awaits them in `onReady`.

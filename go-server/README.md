@@ -42,6 +42,6 @@ CLICKFIX_BASE_URL=http://127.0.0.1:8787 CLICKFIX_API_KEY=cf_sk_example_key CLICK
 
 ## Notes on the SDK (v0.2.0)
 
-- List responses are the generic `IntegrationEnvelope` (`data` untyped); `demo.go` decodes the company page by hand and uses `ListPage[T]` for conversations.
-- `CompanyEventInput.Source` is a required pointer in the generated types although the API defaults it; the example sends `"api"`.
-- `go.mod` of the module pins `go 1.26.11`, so consumers on older toolchains download that version.
+- List responses are the generic `IntegrationEnvelope` (`data` untyped); `demo.go` decodes the company page by hand and uses `ListPage[T]` for conversations. v0.3.0 adds `DecodeData[T]` for any envelope and `ListPageQuery[T]` for filtered lists (`external_id`).
+- `CompanyEventInput.Source` is an optional pointer (`omitempty`): leaving it nil makes the API use `api`; the example sends `"api"` to be explicit.
+- `go.mod` of the module pins `go 1.26.11`, so consumers on older toolchains download that version. v0.3.0 declares `go 1.24.0`.
