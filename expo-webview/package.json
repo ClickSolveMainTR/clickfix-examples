@@ -1,9 +1,9 @@
 {
-  "name": "clickfix-example-react-native-webview",
+  "name": "clickfix-example-expo-webview",
   "private": true,
   "version": "0.1.0",
   "main": "node_modules/expo/AppEntry.js",
-  "description": "ClickFix example: Expo app with @getclickfix/visitor-core (mobile app key) and the hosted widget in a webview (bridge).",
+  "description": "ClickFix example: Expo app that hosts the ready-made widget in a webview (bridge contract v1) and keeps a native visitor session with @getclickfix/visitor-core (mobile app key).",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",

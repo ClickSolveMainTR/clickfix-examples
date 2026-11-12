@@ -17,6 +17,16 @@ env:
   CLICKFIX_WEBHOOK_SECRET: whsec_ci_example_0123456789abcdef0123456789abcdef
 
 jobs:
+  # Public text: no internal tracker references (CF-<number>) in anything this repository publishes.
+  public-text:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if git grep -nE 'CF-[0-9]+' -- . ':!**/package-lock.json' ':!**/composer.lock'; then
+            echo "::error::internal tracker references found"; exit 1
+          fi
+
   node-express:
     runs-on: ubuntu-24.04
     defaults: { run: { working-directory: node-express } }
@@ -56,13 +66,45 @@ jobs:
           sleep 4
           curl -sf localhost:3000/api/support-session | grep -q '"user_hash":"[0-9a-f]\{64\}"'
 
-  react-native-webview:
+  react-native:
     runs-on: ubuntu-24.04
-    defaults: { run: { working-directory: react-native-webview } }
+    defaults: { run: { working-directory: react-native } }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm, cache-dependency-path: react-native-webview/package-lock.json }
+        with: { node-version: 22, cache: npm, cache-dependency-path: react-native/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Metro bundle (Android, production)
+        run: npm run bundle:android
+      - name: user_hash server signs the company too
+        env: { CLICKFIX_IDENTITY_SECRET: example-identity-secret }
+        run: |
+          PORT=8787 node server.mjs &
+          until curl -s http://127.0.0.1:8787/support-session?user_id=1001 >/dev/null; do sleep 1; done
+          expected=$(printf '1001\nF-77' | openssl dgst -sha256 -hmac "$CLICKFIX_IDENTITY_SECRET" | sed 's/^.*= //')
+          curl -sf 'http://127.0.0.1:8787/support-session?user_id=1001' | grep -q "\"user_hash\":\"$expected\""
+
+  expo:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: expo } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: expo/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Metro bundle (Android)
+        run: npx expo export --platform android --output-dir /tmp/export
+        env: { EXPO_PUBLIC_CLICKFIX_WIDGET_ID: ci-widget, CI: 1 }
+
+  expo-webview:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: expo-webview } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: expo-webview/package-lock.json }
       - run: npm ci
       - run: npm run typecheck
       - name: Metro bundle (Android)
@@ -75,7 +117,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        # Pinned like the SDK repository: newer stable releases deprecate APIs the example uses.
+        with: { channel: stable, flutter-version: 3.47.9, cache: true }
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
