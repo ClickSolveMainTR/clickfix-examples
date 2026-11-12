@@ -117,7 +117,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        # Pinned like the SDK repository: newer stable releases deprecate APIs the example uses.
+        with: { channel: stable, flutter-version: 3.47.9, cache: true }
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
